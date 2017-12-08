@@ -42,9 +42,12 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.swing.Box;
@@ -64,7 +67,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.scijava.Context;
+import org.scijava.Priority;
 import org.scijava.plugin.Parameter;
+import org.scijava.plugin.PluginInfo;
+import org.scijava.plugin.PluginService;
+import org.scijava.plugin.SciJavaPlugin;
 import org.scijava.search.SearchOperation;
 import org.scijava.search.SearchResult;
 import org.scijava.search.SearchService;
@@ -91,6 +98,9 @@ public class SwingSearchBar extends JTextField {
 
 	@Parameter
 	private ThreadService threadService;
+
+	@Parameter
+	private PluginService pluginService;
 
 	private final Window parent;
 	private JDialog dialog;
@@ -164,6 +174,25 @@ public class SwingSearchBar extends JTextField {
 		requestFocus();
 	}
 
+	// -- Utility methods --
+
+	// TODO: Move this method to PluginService.
+	public <PT extends SciJavaPlugin> void sort(final List<PT> instances,
+		final Class<PT> type)
+	{
+		// Create a mapping from plugin classes to priorities.
+		final List<PluginInfo<PT>> plugins = pluginService.getPluginsOfType(type);
+		final Map<Class<?>, PluginInfo<PT>> infos = plugins.stream().collect(//
+			Collectors.toMap(PluginInfo::getPluginClass, Function.identity()));
+
+		// Compare plugin instances by priority via the mapping.
+		final Comparator<PT> comparator = (o1, o2) -> Priority.compare(//
+			infos.get(o1.getClass()), infos.get(o2.getClass()));
+		Collections.sort(instances, comparator);
+	}
+
+	// -- Helper methods --
+
 	/** Called whenever the user types something. */
 	private void search() {
 		if (dialog == null) {
@@ -178,7 +207,6 @@ public class SwingSearchBar extends JTextField {
 					threadService.queue(() -> {
 						searchPanel.update(searcher, results);
 					});
-					// TODO Auto-generated method stub
 				}));
 			dialog.setContentPane(searchPanel);
 			dialog.pack();
@@ -224,7 +252,7 @@ public class SwingSearchBar extends JTextField {
 
 	private class SwingSearchPanel extends JPanel {
 
-private final SearchOperation operation;
+		private final SearchOperation operation;
 		private final Map<Searcher, List<SearchResult>> allResults;
 		private final JList<SearchResult> resultsList;
 
@@ -291,7 +319,6 @@ private final SearchOperation operation;
 			final int rowCount = resultsList.getModel().getSize();
 			if (rowCount == 0) return;
 			// Move downward in the list one element at a time, skipping headers.
-			// TODO: skip disabled header rows.
 			int index = resultsList.getSelectedIndex();
 			do {
 				index = (index + 1) % rowCount;
@@ -304,8 +331,7 @@ private final SearchOperation operation;
 
 		private void rebuild() {
 			final List<Searcher> searchers = new ArrayList<>(allResults.keySet());
-			// TODO: pluginService.sort(searchers, Searcher.class)
-			// Needs to cross-reference objects against PluginInfos of that type.
+			sort(searchers, Searcher.class); // Sort Searcher plugins by priority.
 
 			System.out.println("--------------");
 			DefaultListModel<SearchResult> listModel = new DefaultListModel<>();
