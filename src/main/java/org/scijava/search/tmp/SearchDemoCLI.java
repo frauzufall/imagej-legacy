@@ -45,14 +45,12 @@ import org.scijava.search.SearchService;
  */
 public class SearchDemoCLI {
 
-	public static void main(String... args) throws InterruptedException {
+	public static void main(final String... args) throws InterruptedException {
 		Context ctx = new Context();
 		final SearchService ss = ctx.service(SearchService.class);
 		final SearchOperation operation = ss.search(//
-			(searcher, results) -> {
-				System.out.println("[RESULT] searcher=" + searcher.title() + ", results=" +
-					s(results));
-			});
+			event -> System.out.println("[RESULT] searcher=" + //
+				event.searcher().title() + ", results=" + s(event.results())));
 		type(operation, "B", 10);
 		type(operation, "Back", 100);
 		type(operation, "Backgrou", 400);
@@ -61,9 +59,12 @@ public class SearchDemoCLI {
 		System.out.println("[INFO] Terminating the search!");
 		operation.terminate();
 		System.out.println("[INFO] Search terminated.");
+		ctx.dispose();
 	}
 
-	private static void type(SearchOperation sop, String text, int wait) throws InterruptedException {
+	private static void type(SearchOperation sop, String text, int wait)
+		throws InterruptedException
+	{
 		sop.search(text);
 		System.out.println("[INFO] Query -> " + text);
 		Thread.sleep(wait);

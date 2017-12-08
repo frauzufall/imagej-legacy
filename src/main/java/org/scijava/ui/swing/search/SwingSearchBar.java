@@ -41,7 +41,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -72,6 +71,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.PluginInfo;
 import org.scijava.plugin.PluginService;
 import org.scijava.plugin.SciJavaPlugin;
+import org.scijava.search.SearchEvent;
 import org.scijava.search.SearchOperation;
 import org.scijava.search.SearchResult;
 import org.scijava.search.SearchService;
@@ -202,12 +202,7 @@ public class SwingSearchBar extends JTextField {
 			}
 
 			dialog = new JDialog(parent, "Quick Search");
-			searchPanel = new SwingSearchPanel(searchService.search(//
-				(searcher, results) -> {
-					threadService.queue(() -> {
-						searchPanel.update(searcher, results);
-					});
-				}));
+			searchPanel = new SwingSearchPanel(); // Spawns the SearchOperation!
 			dialog.setContentPane(searchPanel);
 			dialog.pack();
 
@@ -253,11 +248,13 @@ public class SwingSearchBar extends JTextField {
 	private class SwingSearchPanel extends JPanel {
 
 		private final SearchOperation operation;
-		private final Map<Searcher, List<SearchResult>> allResults;
+		private final Map<Class<?>, SearchEvent> allResults;
 		private final JList<SearchResult> resultsList;
 
-		public SwingSearchPanel(final SearchOperation operation) {
-			this.operation = operation;
+		public SwingSearchPanel() {
+			operation = searchService.search(//
+				event -> threadService.queue(() -> searchPanel.update(event)));
+
 			allResults = new HashMap<>();
 			resultsList = new JList<>();
 			resultsList.setCellRenderer((list, value, index, isSelected,
@@ -293,9 +290,8 @@ public class SwingSearchBar extends JTextField {
 			add(splitPane, BorderLayout.CENTER);
 		}
 
-		public void update(Searcher searcher, List<SearchResult> results) {
-			allResults.put(searcher, //
-				results.stream().limit(MAX_RESULTS).collect(Collectors.toList()));
+		public void update(SearchEvent event) {
+			allResults.put(event.searcher().getClass(), event);
 			rebuild();
 		}
 
@@ -330,8 +326,10 @@ public class SwingSearchBar extends JTextField {
 		// -- Helper methods --
 
 		private void rebuild() {
-			final List<Searcher> searchers = new ArrayList<>(allResults.keySet());
-			sort(searchers, Searcher.class); // Sort Searcher plugins by priority.
+			// Gets list of Searchers, sorted by priority.
+			final List<Searcher> searchers = allResults.values().stream().map(
+				event -> event.searcher()).collect(Collectors.toList());
+			sort(searchers, Searcher.class);
 
 			System.out.println("--------------");
 			DefaultListModel<SearchResult> listModel = new DefaultListModel<>();
@@ -341,11 +339,16 @@ public class SwingSearchBar extends JTextField {
 				listModel.addElement(new SearchResultHeader(searcher.title()));
 
 				// Add results as entries.
-				for (final SearchResult result : allResults.get(searcher)) {
+				for (final SearchResult result : results(searcher)) {
 					listModel.addElement(result);
 				}
 			}
 			resultsList.setModel(listModel);
+		}
+
+		private List<SearchResult> results(final Searcher searcher) {
+			return allResults.get(searcher.getClass()).results().stream().limit(
+				MAX_RESULTS).collect(Collectors.toList());
 		}
 
 		private Component icon(final String iconPath) {
