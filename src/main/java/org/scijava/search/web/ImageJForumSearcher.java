@@ -45,10 +45,6 @@ public class ImageJForumSearcher extends AbstractWebSearcher {
             for (String result : results) {
                 HashMap<String, String> metaInfo = parseForumSearchResult(result);
 
-                for (String key : metaInfo.keySet()) {
-                    System.out.println(key + " = " + metaInfo.get(key));
-                }
-
                 final String forumPostUrl = "http://forum.imagej.net/t/" + metaInfo.get("slug") + "/" + metaInfo.get("id") + "/";
 
                 String details =

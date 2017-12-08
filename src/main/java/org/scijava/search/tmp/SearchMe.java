@@ -31,77 +31,48 @@
 
 package org.scijava.search.tmp;
 
-import java.awt.BorderLayout;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.WindowConstants;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import java.util.List;
 
 import org.scijava.Context;
-import org.scijava.command.Command;
-import org.scijava.command.CommandService;
-import org.scijava.plugin.Plugin;
-import org.scijava.ui.UIService;
+import org.scijava.search.SearchOperation;
+import org.scijava.search.SearchResult;
+import org.scijava.search.SearchService;
 
 /**
  * Test UI for search.
  *
  * @author Curtis Rueden
  */
-@Plugin(type = Command.class)
-public class SearchMe implements Command {
+public class SearchMe {
 
-	@Override
-	public void run() {
-		JFrame f = new JFrame();
-		JPanel p = new JPanel();
-		f.setContentPane(p);
-		final JTextField textField = new JTextField();
-		textField.getDocument().addDocumentListener(new DocumentListener() {
-
-			public void popup() {
-				final JPopupMenu menu = new JPopupMenu("Hello");
-				menu.add(new JLabel("<html><span style=\"color: #000000; background: #ddffff\">Animals</span>"));
-				menu.add(new JMenuItem("Dog"));
-				menu.add(new JMenuItem("Cat"));
-				menu.add(new JLabel("<html><span style=\"color: #000000; background: #ddffff\">Plants</span>"));
-				menu.add(new JMenuItem("Tree"));
-				menu.add(new JMenuItem("Shrub"));
-
-				menu.show(textField, 0, textField.getHeight());
-
-//				final JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-//				pane.setLeftComponent(menu);
-//				pane.setRightComponent(new JTextArea("Lorem ipsum Lorem ipsum Lorem ipsum\nLorem ipsum Lorem ipsum Lorem ipsum\nLorem ipsum Lorem ipsum Lorem ipsum\nLorem ipsum Lorem ipsum Lorem ipsum\nLorem ipsum Lorem ipsum Lorem ipsum\n"));
-//
-//				final JPopupMenu outer = new JPopupMenu("Bye");
-//				outer.add(pane);
-//				outer.show(textField, 0, textField.getHeight());
-			}
-
-			@Override public void insertUpdate(DocumentEvent e) { popup(); }
-			@Override public void removeUpdate(DocumentEvent e) { popup(); }
-			@Override public void changedUpdate(DocumentEvent e) { popup(); }
-		});
-		p.setLayout(new BorderLayout());
-		p.add(textField, BorderLayout.CENTER);
-		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		f.pack();
-		f.setVisible(true);
-	}
-	
-	public static void main(String... args) {
+	public static void main(String... args) throws InterruptedException {
 		Context ctx = new Context();
-		ctx.service(UIService.class).showUI();
-		ctx.service(CommandService.class).run(SearchMe.class, true);
+		final SearchService ss = ctx.service(SearchService.class);
+		final SearchOperation operation = ss.search(//
+			(searcher, results) -> {
+				System.out.println("[RESULT] searcher=" + searcher.title() + ", results=" +
+					s(results));
+			});
+		type(operation, "B", 10);
+		type(operation, "Back", 100);
+		type(operation, "Backgrou", 400);
+		type(operation, "Background", 400);
+		type(operation, "Background Subtraction", 2000);
+		System.out.println("[INFO] Terminating the search!");
+		operation.terminate();
+		System.out.println("[INFO] Search terminated.");
+	}
+
+	private static void type(SearchOperation sop, String text, int wait) throws InterruptedException {
+		sop.search(text);
+		System.out.println("[INFO] Query -> " + text);
+		Thread.sleep(wait);
+	}
+
+	private static String s(List<SearchResult> results) {
+		final StringBuilder sb = new StringBuilder("[");
+		results.forEach(result -> sb.append("\n\t" + result.name()));
+		sb.append("\n]");
+		return sb.toString();
 	}
 }
