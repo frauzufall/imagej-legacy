@@ -86,7 +86,6 @@ import java.util.concurrent.Callable;
 import javax.swing.SwingUtilities;
 
 import net.imagej.display.ImageDisplay;
-import net.imagej.legacy.ui.SearchBar;
 import net.imagej.patcher.LegacyHooks;
 import net.miginfocom.swing.MigLayout;
 
@@ -103,6 +102,7 @@ import org.scijava.platform.event.AppPreferencesEvent;
 import org.scijava.platform.event.AppQuitEvent;
 import org.scijava.plugin.Parameter;
 import org.scijava.script.ScriptService;
+import org.scijava.ui.swing.search.SwingSearchBar;
 import org.scijava.util.ClassUtils;
 
 /**
@@ -129,7 +129,7 @@ public class IJ1Helper extends AbstractContextual {
 	private LogService log;
 
 	/** Search bar in the main window. */
-	private SearchBar searchBar;
+	private SwingSearchBar searchBar;
 
 	/** Whether we are in the process of forcibly shutting down ImageJ1. */
 	private boolean disposing;
@@ -377,7 +377,7 @@ public class IJ1Helper extends AbstractContextual {
 		return IJ.getInstance().getStatusBar();
 	}
 
-	public SearchBar getSearchBar() {
+	public SwingSearchBar getSearchBar() {
 		return searchBar;
 	}
 
@@ -1305,7 +1305,7 @@ public class IJ1Helper extends AbstractContextual {
 		}
 
 		// add the search bar
-		searchBar = new SearchBar(getContext(), (Window) imagej);
+		searchBar = new SwingSearchBar(getContext(), (Window) imagej);
 		panel.add(searchBar);
 
 		// disable the old Command Finder's shortcut

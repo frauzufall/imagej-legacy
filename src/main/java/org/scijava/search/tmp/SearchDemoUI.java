@@ -1,19 +1,20 @@
 /*
  * #%L
- * SciJava UI components for Java Swing.
+ * SciJava Common shared library for SciJava software.
  * %%
- * Copyright (C) 2010 - 2017 Board of Regents of the University of
- * Wisconsin-Madison.
+ * Copyright (C) 2009 - 2017 Board of Regents of the University of
+ * Wisconsin-Madison, Broad Institute of MIT and Harvard, and Max Planck
+ * Institute of Molecular Cell Biology and Genetics.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -28,36 +29,20 @@
  * #L%
  */
 
-package net.imagej.legacy.ui;
+package org.scijava.search.tmp;
 
-import net.imagej.legacy.LegacyService;
-
-import org.scijava.Priority;
-import org.scijava.command.Command;
-import org.scijava.plugin.Menu;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
-import org.scijava.ui.swing.search.SwingSearchBar;
+import org.scijava.Context;
+import org.scijava.ui.UIService;
 
 /**
- * Command which focuses the ImageJ search bar.
- * <p>
- * This overrides the old ImageJ 1.x Command Finder plugin.
- * </p>
+ * Test UI for search.
  *
  * @author Curtis Rueden
  */
-@Plugin(type = Command.class, menu = { @Menu(label = "Plugins"), @Menu(
-	label = "Utilities"), @Menu(label = "Focus Search Bar",
-		accelerator = "meta L") }, priority = Priority.HIGH_PRIORITY)
-public class FocusSearchBar implements Command {
+public class SearchDemoUI {
 
-	@Parameter
-	private LegacyService legacyService;
-
-	@Override
-	public void run() {
-		final SwingSearchBar searchBar = legacyService.getIJ1Helper().getSearchBar();
-		if (searchBar != null) searchBar.activate();
+	public static void main(String... args) {
+		Context ctx = new Context();
+		ctx.service(UIService.class).showUI();
 	}
 }

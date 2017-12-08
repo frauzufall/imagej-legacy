@@ -43,7 +43,7 @@ import org.scijava.search.SearchService;
  *
  * @author Curtis Rueden
  */
-public class SearchMe {
+public class SearchDemoCLI {
 
 	public static void main(String... args) throws InterruptedException {
 		Context ctx = new Context();

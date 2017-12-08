@@ -37,7 +37,7 @@ public class ImageJForumSearcher extends AbstractWebSearcher {
                 webSearchContent = s.next();
             } catch (NoSuchElementException e) {
                 e.printStackTrace();
-                return null;
+                return getSearchResults();
             }
             webSearchContent = webSearchContent.substring(webSearchContent.indexOf("[{") + 2, webSearchContent.indexOf("}]"));
 
