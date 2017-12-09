@@ -29,7 +29,7 @@
  * #L%
  */
 
-package org.scijava.search.tmp;
+package org.scijava.search.demo;
 
 import java.util.List;
 

@@ -29,7 +29,7 @@
  * #L%
  */
 
-package org.scijava.search.tmp;
+package org.scijava.search.demo;
 
 import org.scijava.Context;
 import org.scijava.ui.UIService;
